@@ -15,6 +15,8 @@
  */
 package io.micronaut.objectstorage.googlecloud;
 
+import com.google.auth.Credentials;
+import com.google.cloud.NoCredentials;
 import com.google.cloud.storage.*;
 import io.micronaut.context.annotation.EachBean;
 import io.micronaut.context.annotation.Parameter;
@@ -207,8 +209,8 @@ public class GoogleCloudStorageOperations
         @NonNull PresignRequest request) {
 
         // Prevent use on emulators/fake servers or with credentials that can't sign
-        com.google.auth.Credentials creds = storage.getOptions().getCredentials();
-        if (creds != null && creds.getClass().getName().equals("com.google.cloud.NoCredentials")) {
+        Credentials creds = storage.getOptions().getCredentials();
+        if (creds != null && !(creds instanceof NoCredentials)) {
             throw new UnsupportedOperationException("Presigned URLs require credentials with signing ability and are not supported with emulators such as FakeGcsServer or NoCredentials.");
         }
 

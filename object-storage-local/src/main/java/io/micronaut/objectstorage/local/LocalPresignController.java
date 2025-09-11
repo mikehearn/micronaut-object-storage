@@ -17,7 +17,10 @@ package io.micronaut.objectstorage.local;
 
 import io.micronaut.context.annotation.Requires;
 import io.micronaut.core.annotation.NonNull;
-import io.micronaut.http.*;
+import io.micronaut.http.HttpRequest;
+import io.micronaut.http.HttpResponse;
+import io.micronaut.http.HttpStatus;
+import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.*;
 import io.micronaut.http.server.types.files.StreamedFile;
 import io.micronaut.objectstorage.ObjectStorageException;
@@ -44,6 +47,10 @@ import java.util.Optional;
 @Controller(LocalPresignController.LOCAL_PRESIGNED_REQUESTS_URL)
 @Singleton
 @Requires(property = "micronaut.object-storage.local-presigned-request-controller", value = "true")
+@SuppressWarnings({
+    "java:S7027",  // Use of the LOCAL_PRESIGNED_REQUESTS_URL constant from elsewhere is not a problem.
+    "java:S5145"   // Logging tokens is not a problem because this is a test module.
+})
 class LocalPresignController {
     static final String LOCAL_PRESIGNED_REQUESTS_URL = "/mn-os/local";
     private static final Logger LOG = LoggerFactory.getLogger(LocalPresignController.class);
@@ -62,14 +69,16 @@ class LocalPresignController {
      * @return The streamed file or 404/403 in case of error.
      */
     @Get("/{token}")
-    public HttpResponse<?> download(@NonNull String token) {
+    public HttpResponse<StreamedFile> download(@NonNull String token) {
         Optional<LocalPresignStore.Entry> entryOpt = localPresignStore.consume(token);
         if (entryOpt.isEmpty()) {
-            return notFound(token);
+            LOG.warn("Unable to find presigned request for token {}", token);
+            return HttpResponse.notFound();
         }
         LocalPresignStore.Entry entry = entryOpt.get();
         if (entry.operation() != PresignRequest.Operation.DOWNLOAD) {
-            return illegal(token);
+            LOG.warn("Illegal attempt to do a download using a pre-signed request that doesn't allow it, token is {}", token);
+            return HttpResponse.status(HttpStatus.FORBIDDEN);
         }
 
         return operations.retrieve(entry.key())
@@ -86,23 +95,25 @@ class LocalPresignController {
     /**
      * Handles an upload operation.
      *
-     * @param token  Opaque token.
-     * @param bytes  Request body.
+     * @param token   Opaque token.
+     * @param bytes   Request body.
      * @param request HttpRequest to read headers.
      * @return 200 OK on success, 404/403 otherwise.
      */
     @Put("/{token}")
     @Consumes(MediaType.ALL)
-    public HttpResponse<?> upload(@NonNull String token,
-                                  @Body byte[] bytes,
-                                  HttpRequest<?> request) {
+    public HttpResponse<String> upload(@NonNull String token,
+                                       @Body byte[] bytes,
+                                       HttpRequest<?> request) {
         Optional<LocalPresignStore.Entry> entryOpt = localPresignStore.consume(token);
         if (entryOpt.isEmpty()) {
-            return notFound(token);
+            LOG.warn("Unable to find presigned request for token {}", token);
+            return HttpResponse.notFound();
         }
         LocalPresignStore.Entry entry = entryOpt.get();
         if (entry.operation() != PresignRequest.Operation.UPLOAD) {
-            return illegal(token);
+            LOG.warn("Illegal attempt to do a download using a pre-signed request that doesn't allow it, token is {}", token);
+            return HttpResponse.status(HttpStatus.FORBIDDEN);
         }
 
         if (bytes == null) {
@@ -120,15 +131,5 @@ class LocalPresignController {
         } catch (ObjectStorageException ex) {
             return HttpResponse.serverError();
         }
-    }
-
-    private static MutableHttpResponse<Object> illegal(String token) {
-        LOG.warn("Illegal attempt to do a download using a pre-signed request that doesn't allow it, token is {}", token);
-        return HttpResponse.status(HttpStatus.FORBIDDEN);
-    }
-
-    private static MutableHttpResponse<Object> notFound(String token) {
-        LOG.warn("Unable to find presigned request for token {}", token);
-        return HttpResponse.notFound();
     }
 }
