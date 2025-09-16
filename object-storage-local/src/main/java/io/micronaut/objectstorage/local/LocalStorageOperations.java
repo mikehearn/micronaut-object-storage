@@ -62,6 +62,7 @@ public class LocalStorageOperations implements ObjectStorageOperations<
     LocalStorageOperations.LocalStorageFile,
     LocalStorageOperations.LocalStorageFile> {
 
+    static final String LOCAL_PRESIGNED_REQUESTS_URL = "/mn-os/local";
     public static final String METADATA_DIRECTORY = ".metadata";
 
     private final LocalStorageConfiguration configuration;
@@ -271,10 +272,10 @@ public class LocalStorageOperations implements ObjectStorageOperations<
         if (embeddedServer != null && embeddedServer.isRunning()) {
             baseUri = embeddedServer.getURI();
         } else {
-            baseUri = URI.create("https://example.com" + LocalPresignController.LOCAL_PRESIGNED_REQUESTS_URL);
+            baseUri = URI.create("https://example.com" + LocalStorageOperations.LOCAL_PRESIGNED_REQUESTS_URL);
         }
 
-        URI url = baseUri.resolve(LocalPresignController.LOCAL_PRESIGNED_REQUESTS_URL + "/" + token);
+        URI url = baseUri.resolve(LocalStorageOperations.LOCAL_PRESIGNED_REQUESTS_URL + "/" + token);
         return new PresignResponse(url, expiration);
     }
 

@@ -28,6 +28,7 @@ import com.azure.storage.blob.models.BlockBlobItem;
 import com.azure.storage.blob.options.BlobParallelUploadOptions;
 import com.azure.storage.blob.options.BlockBlobSimpleUploadOptions;
 import com.azure.storage.blob.sas.BlobSasPermission;
+import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
 import io.micronaut.context.annotation.EachBean;
 import io.micronaut.context.annotation.Parameter;
 import io.micronaut.context.annotation.Requires;
@@ -114,11 +115,8 @@ public class AzureBlobStorageOperations
         OffsetDateTime expiry = OffsetDateTime.now(java.time.ZoneOffset.UTC).plus(expiresIn);
 
         // Build SAS Signature values
-        com.azure.storage.blob.sas.BlobServiceSasSignatureValues sasValues =
-            new com.azure.storage.blob.sas.BlobServiceSasSignatureValues(expiry, permission)
-                    .setStartTime(OffsetDateTime.now(java.time.ZoneOffset.UTC))
-                    .setContainerName(blobContainerClient.getBlobContainerName())
-                    .setBlobName(request.getKey());
+        BlobServiceSasSignatureValues sasValues = new BlobServiceSasSignatureValues(expiry, permission)
+                    .setStartTime(OffsetDateTime.now(java.time.ZoneOffset.UTC));
 
         String sasToken = blobClient.generateSas(sasValues);
         String fullUrl = blobClient.getBlobUrl() + "?" + sasToken;

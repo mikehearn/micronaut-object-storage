@@ -44,15 +44,14 @@ import java.util.Optional;
  *
  * @since 2.10
  */
-@Controller(LocalPresignController.LOCAL_PRESIGNED_REQUESTS_URL)
+@Controller(LocalStorageOperations.LOCAL_PRESIGNED_REQUESTS_URL)
 @Singleton
 @Requires(property = "micronaut.object-storage.local-presigned-request-controller", value = "true")
 @SuppressWarnings({
-    "java:S7027",  // Use of the LOCAL_PRESIGNED_REQUESTS_URL constant from elsewhere is not a problem.
-    "java:S5145"   // Logging tokens is not a problem because this is a test module.
+    // Logging tokens is not a problem because this is a test module.
+    "java:S5145"
 })
 class LocalPresignController {
-    static final String LOCAL_PRESIGNED_REQUESTS_URL = "/mn-os/local";
     private static final Logger LOG = LoggerFactory.getLogger(LocalPresignController.class);
     private final LocalStorageOperations operations;
     private final LocalPresignStore localPresignStore;

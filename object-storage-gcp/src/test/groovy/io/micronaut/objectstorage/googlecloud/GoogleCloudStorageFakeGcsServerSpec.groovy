@@ -43,11 +43,6 @@ class GoogleCloudStorageFakeGcsServerSpec extends AbstractGoogleCloudStorageSpec
         return false
     }
 
-    @Override
-    boolean emulatorSupportsPresignDownload() {
-        return false
-    }
-
     @Factory
     @Requires(property = 'spec.name', value = SPEC_NAME)
     static class FakeGcsFactory {

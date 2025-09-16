@@ -35,8 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Singleton
 @Internal
 class LocalPresignStore {
-
-    private final ConcurrentHashMap<String, Entry> TOKENS = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Entry> tokens = new ConcurrentHashMap<>();
 
     /**
      * Registers a new pre-authorised request and returns the generated token.
@@ -48,7 +47,7 @@ class LocalPresignStore {
      */
     String register(String key, PresignRequest.Operation operation, Instant expiration) {
         String token = UUID.randomUUID().toString();
-        TOKENS.put(token, new Entry(key, operation, expiration));
+        tokens.put(token, new Entry(key, operation, expiration));
         return token;
     }
 
@@ -59,7 +58,7 @@ class LocalPresignStore {
      * @return The {@link Entry} if present and not expired, or an empty optional otherwise.
      */
     Optional<Entry> consume(String token) {
-        Entry entry = TOKENS.remove(token);
+        Entry entry = tokens.remove(token);
         if (entry == null || entry.isExpired()) {
             return Optional.empty();
         }
@@ -73,7 +72,7 @@ class LocalPresignStore {
      * @param token Token to invalidate.
      */
     void remove(String token) {
-        TOKENS.remove(token);
+        tokens.remove(token);
     }
 
     /**
