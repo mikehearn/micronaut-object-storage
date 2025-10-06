@@ -16,6 +16,8 @@
 package io.micronaut.objectstorage.local;
 
 import io.micronaut.context.annotation.Requires;
+import io.micronaut.context.condition.Condition;
+import io.micronaut.context.condition.ConditionContext;
 import io.micronaut.core.annotation.NonNull;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpResponse;
@@ -46,7 +48,7 @@ import java.util.Optional;
  */
 @Controller(LocalStorageOperations.LOCAL_PRESIGNED_REQUESTS_URL)
 @Singleton
-@Requires(property = "micronaut.object-storage.local-presigned-request-controller", value = "true")
+@Requires(condition = LocalPresignController.EnabledCondition.class)
 @SuppressWarnings({
     // Logging tokens is not a problem because this is a test module.
     "java:S5145"
@@ -129,6 +131,13 @@ class LocalPresignController {
             return HttpResponse.ok();
         } catch (ObjectStorageException ex) {
             return HttpResponse.serverError();
+        }
+    }
+
+    static class EnabledCondition implements Condition {
+        @Override
+        public boolean matches(ConditionContext context) {
+            return context.getBean(LocalStorageModuleConfiguration.class).isPresignedRequestController();
         }
     }
 }

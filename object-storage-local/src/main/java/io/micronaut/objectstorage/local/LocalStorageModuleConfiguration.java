@@ -26,6 +26,7 @@ import io.micronaut.objectstorage.configuration.AbstractObjectStorageModuleConfi
  */
 @ConfigurationProperties(LocalStorageConfiguration.PREFIX)
 public class LocalStorageModuleConfiguration extends AbstractObjectStorageModuleConfiguration {
+    private boolean presignedRequestController = true;
 
     /**
      * Whether to enable or disable the whole Local Storage module.
@@ -33,5 +34,13 @@ public class LocalStorageModuleConfiguration extends AbstractObjectStorageModule
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public boolean isPresignedRequestController() {
+        return presignedRequestController;
+    }
+
+    public void setPresignedRequestController(boolean presignedRequestController) {
+        this.presignedRequestController = presignedRequestController;
     }
 }
